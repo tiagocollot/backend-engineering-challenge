@@ -13,7 +13,7 @@
 
 ### Challenge Solution
 
-*The moving average helps to level the durantion data over a specified period by creating a constantly updated average delivery time.*
+*The moving average helps to level the duration data over a specified period by creating a constantly updated average delivery time.*
 
  *I have built a simple command line application that parses a stream of events and produces an aggregated output for a specified time period. In this case, I was interested in calculating, for every minute, a moving average of the translation delivery time for the last 10 minutes with the following input data:*
 
