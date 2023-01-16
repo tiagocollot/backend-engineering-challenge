@@ -14,9 +14,10 @@ func TestCalculateAvg(t *testing.T) {
     {"date":"2022-01-01 00:02:00","average_delivery_time":20}`
 	var buf bytes.Buffer
 	windowSize := uint(1)
+	// Test the calculateAvg function
 	if err := calculateAvg(input, &buf, windowSize); err != nil {
 		t.Fatalf("Unexpected error: %s", err)
-	}
+	} // check if the output matches the expected output
 	if buf.String() != expectedOutput {
 		t.Errorf("Expected: %s, got: %s", expectedOutput, buf.String())
 	}
