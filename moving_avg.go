@@ -10,11 +10,13 @@ import (
 	"github.com/tidwall/sjson"
 )
 
+// avgState struct to store sum and count
 type avgState struct {
 	sum float64
 	cnt uint
 }
 
+// movingAvg struct to store the windowHead, windowTail, end time, byMinute and state
 type movingAvg struct {
 	windowHead time.Time
 	windowTail time.Time
@@ -23,12 +25,14 @@ type movingAvg struct {
 	state      avgState
 }
 
+// calculateAvg function to read and write the average of the data
 func calculateAvg(reader io.Reader, writer io.Writer, wsize uint) error {
 	ma, err := readAggregated(reader, wsize)
 	if err != nil {
 		return err
 	}
 
+	// iterate over the data and write the average to the writer
 	for ma.windowHead.Before(ma.end) {
 		ma.writeAvg(writer)
 		ma.advanceHead()
@@ -37,11 +41,12 @@ func calculateAvg(reader io.Reader, writer io.Writer, wsize uint) error {
 	return nil
 }
 
+// writeAvg function to write the avg to the writer
 func (ma *movingAvg) writeAvg(writer io.Writer) error {
 	var avg float64
 	if ma.state.cnt != 0 {
 		avg = ma.state.sum / float64(ma.state.cnt)
-	}
+	} // set the json data
 	data, err := sjson.SetBytes([]byte{}, "date", ma.windowHead.Add(time.Minute).Format("2006-01-02 15:04:00"))
 	if err != nil {
 		return err
@@ -55,6 +60,7 @@ func (ma *movingAvg) writeAvg(writer io.Writer) error {
 	return err
 }
 
+// advanceHead function to move the windowHead
 func (ma *movingAvg) advanceHead() {
 	ma.windowHead = ma.windowHead.Add(time.Minute)
 	if v, ok := ma.byMinute[ma.windowHead]; ok {
@@ -63,6 +69,7 @@ func (ma *movingAvg) advanceHead() {
 	}
 }
 
+// advanceTail function to move the windowTail
 func (ma *movingAvg) advanceTail() {
 	if v, ok := ma.byMinute[ma.windowTail]; ok {
 		ma.state.sum -= v.sum
@@ -71,6 +78,7 @@ func (ma *movingAvg) advanceTail() {
 	ma.windowTail = ma.windowTail.Add(time.Minute)
 }
 
+// readAggregated function to read and aggregate the data
 func readAggregated(reader io.Reader, wsize uint) (*movingAvg, error) {
 	ma := movingAvg{
 		byMinute: make(map[time.Time]avgState),
@@ -100,6 +108,7 @@ func readAggregated(reader io.Reader, wsize uint) (*movingAvg, error) {
 	return &ma, sc.Err()
 }
 
+// getTimestamp function to get the timestamp from the data
 func getTimestamp(data []byte) (time.Time, error) {
 	tsRes := gjson.GetBytes(data, "timestamp")
 	if !tsRes.Exists() {
@@ -113,6 +122,7 @@ func getTimestamp(data []byte) (time.Time, error) {
 	return ts, nil
 }
 
+// getDuration function to get the duration from the data
 func getDuration(data []byte) (float64, error) {
 	durRes := gjson.GetBytes(data, "duration")
 	if !durRes.Exists() {
